@@ -230,14 +230,57 @@ class Perceptron(Classifier,GradientDescent,OptimFunc):
         n=data.size/(self.dim-1)
         return np.hstack((np.ones((n,1)),data.reshape(n,self.dim-1))).dot(self.w)
 
+Bset=np.ones([3,2])
+Bset[1,1]=-1
+Bset[2,0]=-1
+#Bset[3,0]=-1
+#Bset[3,1]=-1
+Bset=np.hstack((np.ones((Bset.shape[0],1)),Bset))
+
+class PerceptronGaussian(Classifier,GradientDescent,OptimFunc):
+    def __init__(self,eps=1e-4,max_iter=2000):
+        GradientDescent.__init__(self,self,eps,max_iter)
+        self.dim=self.data=self.y=self.n=self.w=None
+    def fit(self,data,y):
+        self.y=y
+        self.n=y.shape[0]
+        self.dim=data.size/self.n+1
+        self.data=data.reshape((self.n,self.dim-1))
+        self.data=np.hstack((np.ones((self.n,1)),self.data))
+        self.optimize()
+    def f(self,w):
+        sigma = 1
+        X = np.zeros([self.data.shape[0],Bset.shape[0]])
+        for i,x in enumerate(Bset):
+            #print np.sum(np.multiply(x-self.data,x-self.data),1).shape
+            X[:,i]=np.exp(-np.sum(np.multiply(x-self.data,x-self.data),1)/sigma**2)
+        #print X.shape
+        m=-np.multiply(X.dot(w.T),self.y)
+        #m = -np.multiply(self.data.dot(w),self.y)
+        return np.sum(np.maximum(0,m))
+    def grad_f(self,w):
+        return sum(-(self.data*to_col(self.y)))
+    def init(self):
+        return np.random.random(self.dim)*(np.max(self.data)-np.min(self.data))+np.min(self.data)
+    def predict(self,data):
+        n=data.size/(self.dim-1)
+        data=np.hstack((np.ones((n,1)),data.reshape(n,self.dim-1)))
+        sigma = 1
+        X = np.zeros([data.shape[0],Bset.shape[0]])
+        for i,x in enumerate(Bset):
+            X[:,i]=np.exp(-np.sum(np.multiply(x-data,x-data),1)/sigma**2)
+        return X
+        #return np.hstack((np.ones((n,1)),data.reshape(n,self.dim-1))).dot(self.w)
+
 def Perceptron_example():
-    data,y=gen_arti(0,200)
-    perceptron = Perceptron(1e-4)
+    data,y=gen_arti(1,200)
+    perceptron = PerceptronGaussian(1e-4)
     perceptron.fit(data,y)
     plot_frontiere(data,perceptron.predict)
     plot_data(data,y)
     plt.show()
     print perceptron.w
+
 
 # <codecell>
 # ## Extensions : linéaire... vraiment ?
