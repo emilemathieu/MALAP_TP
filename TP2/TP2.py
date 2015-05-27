@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr 23 11:03:25 2015
-
 @author: EmileMathieu
 """
 
@@ -93,15 +92,9 @@ def Lissage(sigma):
             pass
             #print k
         for i in range(interpolation.shape[1]):
-            #res = 0.
-            #   Z = 0.
-            Z = np.exp(-((i-np.arange(0,1440,10))/(sigma))**2)
-            res=np.inner(velib[k,:].reshape((7,144)).sum(0),Z)
+            Z = np.exp(-(np.multiply(i-np.arange(0,60*24,10),i-np.arange(0,60*24,10))/(sigma)**2))
+            res=np.inner(velib[k,:].reshape((7,6*24)).sum(0),Z)
             interpolation[k,i]=res/Z.sum()
-            #for j,y in enumerate(velib[k,:].reshape((7,144)).sum(0)):
-            #    Z+=np.exp(-((i-10*j)/(sigma))**2)
-            #    res += y*np.exp(-(i-10*j)**2/(sigma)**2)
-            #interpolation[k,i]=res/Z`
     return interpolation
 
 def Altitude():
@@ -122,20 +115,25 @@ def plot_Lissage(i):
     plt.plot(np.arange(0,1440,1),interpolation[i,:])
     plt.show()
 
-def Knn_Velib(k):
+def Knn_Velib(k,X,Y):
     knnVelib = Knn(k)
-    index = np.arange(interpolation.shape[0])
+    n=X.shape[0]
+    index = np.arange(n)
     np.random.shuffle(index)
-    np.random.shuffle(interpolation)
-    interpolationTrain=interpolation[]
-    interpolationTest=interpolation[]
-    knnVelib.fit(interpolationTrain,altitude)
-    predictedVelibTrain = knnVelib.predict(interpolationTrain,False)
-    predictedVelibTest = knnVelib.predict(interpolationTest,False)
-    print "score Train", sum(abs(predictedVelibTrain-altitude)/altitude)/len(altitude)
-    print "score Test", sum(abs(predictedVelibTest-altitude)/altitude)/len(altitude)
+    X[index,:]=X
+    Y[index]=Y
+    XTrain=X[0:np.floor(4*n/5),:]
+    XTest=X[np.floor(4*n/5):n,:]
+    YTrain=X[0:np.floor(4*n/5)]
+    YTest=X[np.floor(4*n/5):n]
+    knnVelib.fit(XTrain,YTrain)
+    predictedVelibTrain = knnVelib.predict(XTrain,False)
+    predictedVelibTest = knnVelib.predict(XTest,False)
+    print "score Train", sum(abs(predictedVelibTrain-YTrain)/YTrain)/len(YTrain)
+    print "score Test", sum(abs(predictedVelibTest-YTest)/YTest)/len(YTest)
 
 
 altitude = Altitude()
-interpolation = Lissage(100)
-Knn_Velib(2)
+interpolation = Lissage(50)
+plot_Lissage(0)
+Knn_Velib(5,interpolation,altitude)
