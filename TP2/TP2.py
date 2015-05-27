@@ -45,7 +45,7 @@ class Knn(Classifier):
         y=[]        
         for i,x in enumerate(data):
             if i%50==0:
-                print i
+                pass
             arg = np.argsort(((x-self.data)**2).sum(1))
             y.append(arg[0:self.k])
         return y
@@ -124,16 +124,10 @@ def Knn_Velib(k,X,Y):
     Y[index]=Y
     XTrain=X[0:np.floor(4*n/5),:]
     XTest=X[np.floor(4*n/5):n,:]
-    YTrain=X[0:np.floor(4*n/5)]
-    YTest=X[np.floor(4*n/5):n]
+    YTrain=Y[0:np.floor(4*n/5)]
+    YTest=Y[np.floor(4*n/5):n]
     knnVelib.fit(XTrain,YTrain)
     predictedVelibTrain = knnVelib.predict(XTrain,False)
     predictedVelibTest = knnVelib.predict(XTest,False)
     print "score Train", sum(abs(predictedVelibTrain-YTrain)/YTrain)/len(YTrain)
     print "score Test", sum(abs(predictedVelibTest-YTest)/YTest)/len(YTest)
-
-
-altitude = Altitude()
-interpolation = Lissage(50)
-plot_Lissage(0)
-Knn_Velib(5,interpolation,altitude)
